@@ -1,38 +1,29 @@
 
-### Some of the functions available in the notebooks and codes in this repository
+### Notebook Overview
 
-#### Slack Data Parsing Functions
-`slack_parser`: Parses Slack data to extract relevant information such as message type, content, sender details, thread information, etc. Combines data from multiple JSON files and returns a DataFrame.
+This repository contains notebooks and codes related to news correlation analysis for the given task. Below are some of the key functions available in the notebooks and codes:
 
-`parse_slack_reaction`: Retrieves reaction-related information from Slack data, including reaction name, count, users, associated message, and user ID. Returns a DataFrame.
+### Functions:
 
-`convert_2_timestamp`: Converts Unix time to a readable timestamp for specified columns in the DataFrame.
+1. **EDA Analysis Functions**:
+   - `top_bottom_websites()`: Analyzes and returns the top and bottom 10 websites based on various criteria such as news article count, visitor traffic, etc.
+   - `country_analysis()`: Performs analysis to identify countries with the highest number of news media organizations and those with many articles written about them.
 
-#### User Interaction and Community Analysis Functions
-`get_tagged_users`: Extracts all user mentions (@) from messages.
+2. **Sentiment Analysis Functions**:
+   - `sentiment_counts_by_domain()`: Groups the data by website domain and calculates the count of positive, neutral, and negative sentiment articles.
+   - `compare_sentiment_impact()`: Compares the impact of using mean/average and median sentiment.
 
-`get_community_participation`: Analyzes community participation by counting the number of replies for each user.
+3. **Visualization Functions**:
+   - `scatter_plot_total_reports()`: Generates a 2D scatter plot with the total number of reports by a website on the x-axis and the global ranking of the site on the y-axis. Color represents average/median sentiment.
 
-`map_userid_2_realname`: Maps Slack IDs to real names using user profiles. Optionally, plots a bar graph of message counts for each user.
+4. **Data Processing Functions**:
+   - `calculate_average_sentiment()`: Calculates the average sentiment for each domain and approximates it to one of the three categories (positive, neutral, negative).
 
-`get_top_20_user`: Plots the top 20 message senders in a specified channel.
+5. **Git Integration Functions**:
+   - `push_to_git()`: Integrates with Git to push changes to a specified branch in the repository.
 
-`draw_avg_reply_count`: Plots the average number of reply counts per sender in a channel.
+---
 
-`draw_avg_reply_users_count`: Plots the average number of reply user counts per sender in a channel.
+These functions are designed to facilitate data exploration, analysis, visualization, and version control within the context of news correlation analysis. They provide essential functionality to conduct meaningful analysis and draw insights from the data.
 
-`draw_wordcloud`: Generates and displays a word cloud visualization for message content.
-
-`draw_user_reaction`: Plots users with the most reactions in a channel.
-
-#### Data Analysis and Visualization
-`get_top_20_user(dfall_week, channel='All learning')`: Visualizes the top 20 message senders.
-
-`draw_avg_reply_count(dfall_week, channel='All Learning')`: Visualizes the average reply count per sender.
-
-`draw_avg_reply_users_count(dfall_week, channel='All learning')`: Visualizes the average reply user count per sender.
-
-`draw_wordcloud(dfall_week['msg_content'], week='All Learning Week')`: Displays a word cloud for message content.
-
-`draw_user_reaction`: Plots users with the most reactions.
-
+Please refer to the respective notebooks and code files for more detailed documentation and usage instructions of each function.
