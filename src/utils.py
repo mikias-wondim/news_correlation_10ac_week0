@@ -1,182 +1,77 @@
+import zipfile
 import os
-import sys
-import glob
-import json
-import datetime
-from collections import Counter
-from collections import Counter
 
-import pandas as pd
-from matplotlib import pyplot as plt
-import seaborn as sns
-from nltk.corpus import stopwords
-
-
-def break_combined_weeks(combined_weeks):
+def get_base_directory():
     """
-    Breaks combined weeks into separate weeks.
+    Returns the base directory path based on the environment.
     
-    Args:
-        combined_weeks: list of tuples of weeks to combine
-        
+    If running in Google Colab, returns '/content/', otherwise returns an empty string.
+    """
+    try:
+        import google.colab
+        return '/content/'
+    except ImportError:
+        return ''
+
+def unzip_file(zip_file_path, extract_to_path):
+    """
+    Unzips a zip file to a specified directory.
+
+    Parameters:
+    - zip_file_path (str): Path to the zip file.
+    - extract_to_path (str): Directory where the contents of the zip file will be extracted.
+
     Returns:
-        tuple of lists of weeks to be treated as plus one and minus one
+    - extracted_files (list): List of paths to the extracted files.
     """
-    plus_one_week = []
-    minus_one_week = []
-
-    for week in combined_weeks:
-        if week[0] < week[1]:
-            plus_one_week.append(week[0])
-            minus_one_week.append(week[1])
-        else:
-            minus_one_week.append(week[0])
-            plus_one_week.append(week[1])
-
-    return plus_one_week, minus_one_week
-
-def get_msgs_df_info(df):
-    msgs_count_dict = df.user.value_counts().to_dict()
-    replies_count_dict = dict(Counter([u for r in df.replies if r != None for u in r]))
-    mentions_count_dict = dict(Counter([u for m in df.mentions if m != None for u in m]))
-    links_count_dict = df.groupby("user").link_count.sum().to_dict()
-    return msgs_count_dict, replies_count_dict, mentions_count_dict, links_count_dict
-
-
-
-def get_messages_dict(msgs):
-    msg_list = {
-            "msg_id":[],
-            "text":[],
-            "attachments":[],
-            "user":[],
-            "mentions":[],
-            "emojis":[],
-            "reactions":[],
-            "replies":[],
-            "replies_to":[],
-            "ts":[],
-            "links":[],
-            "link_count":[]
-            }
-
-
-    for msg in msgs:
-        if "subtype" not in msg:
-            try:
-                msg_list["msg_id"].append(msg["client_msg_id"])
-            except:
-                msg_list["msg_id"].append(None)
-            
-            msg_list["text"].append(msg["text"])
-            msg_list["user"].append(msg["user"])
-            msg_list["ts"].append(msg["ts"])
-            
-            if "reactions" in msg:
-                msg_list["reactions"].append(msg["reactions"])
-            else:
-                msg_list["reactions"].append(None)
-
-            if "parent_user_id" in msg:
-                msg_list["replies_to"].append(msg["ts"])
-            else:
-                msg_list["replies_to"].append(None)
-
-            if "thread_ts" in msg and "reply_users" in msg:
-                msg_list["replies"].append(msg["replies"])
-            else:
-                msg_list["replies"].append(None)
-            
-            if "blocks" in msg:
-                emoji_list = []
-                mention_list = []
-                link_count = 0
-                links = []
-                
-                for blk in msg["blocks"]:
-                    if "elements" in blk:
-                        for elm in blk["elements"]:
-                            if "elements" in elm:
-                                for elm_ in elm["elements"]:
-                                    
-                                    if "type" in elm_:
-                                        if elm_["type"] == "emoji":
-                                            emoji_list.append(elm_["name"])
-
-                                        if elm_["type"] == "user":
-                                            mention_list.append(elm_["user_id"])
-                                        
-                                        if elm_["type"] == "link":
-                                            link_count += 1
-                                            links.append(elm_["url"])
-
-
-                msg_list["emojis"].append(emoji_list)
-                msg_list["mentions"].append(mention_list)
-                msg_list["links"].append(links)
-                msg_list["link_count"].append(link_count)
-            else:
-                msg_list["emojis"].append(None)
-                msg_list["mentions"].append(None)
-                msg_list["links"].append(None)
-                msg_list["link_count"].append(0)
+    # Check if the zip file exists
+    if not os.path.exists(zip_file_path):
+        print(f"Error: Zip file '{zip_file_path}' not found.")
+        return None
     
-    return msg_list
-
-def from_msg_get_replies(msg):
-    replies = []
-    if "thread_ts" in msg and "replies" in msg:
-        try:
-            for reply in msg["replies"]:
-                reply["thread_ts"] = msg["thread_ts"]
-                reply["message_id"] = msg["client_msg_id"]
-                replies.append(reply)
-        except:
-            pass
-    return replies
-
-def msgs_to_df(msgs):
-    msg_list = get_messages_dict(msgs)
-    df = pd.DataFrame(msg_list)
-    return df
-
-def process_msgs(msg):
-    '''
-    select important columns from the message
-    '''
-
-    keys = ["client_msg_id", "type", "text", "user", "ts", "team", 
-            "thread_ts", "reply_count", "reply_users_count"]
-    msg_list = {k:msg[k] for k in keys}
-    rply_list = from_msg_get_replies(msg)
-
-    return msg_list, rply_list
-
-def get_messages_from_channel(channel_path):
-    '''
-    get all the messages from a channel        
-    '''
-    channel_json_files = os.listdir(channel_path)
-    channel_msgs = [json.load(open(channel_path + "/" + f)) for f in channel_json_files]
-
-    df = pd.concat([pd.DataFrame(get_messages_dict(msgs)) for msgs in channel_msgs])
-    print(f"Number of messages in channel: {len(df)}")
+    # Create the extraction directory if it doesn't exist
+    if not os.path.exists(extract_to_path):
+        os.makedirs(extract_to_path)
     
-    return df
+    # Initialize a list to store the paths of extracted files
+    extracted_files = []
 
+    # Unzip the file
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_to_path)
+        extracted_files = zip_ref.namelist()
+        print("Extraction complete.")
 
-def convert_2_timestamp(column, data):
-    """convert from unix time to readable timestamp
-        args: column: columns that needs to be converted to timestamp
-                data: data that has the specified column
-    """
-    if column in data.columns.values:
-        timestamp_ = []
-        for time_unix in data[column]:
-            if time_unix == 0:
-                timestamp_.append(0)
-            else:
-                a = datetime.datetime.fromtimestamp(float(time_unix))
-                timestamp_.append(a.strftime('%Y-%m-%d %H:%M:%S'))
-        return timestamp_
-    else: print(f"{column} not in data")
+    return extracted_files
+
+# Function to map countries to regions
+def map_to_region(country):
+      """
+      Maps a country with predefined category.
+
+      Parameters:
+      - country: name of a country
+
+      Returns:
+      - region of the country
+      """
+    region_mapping = {
+        'Africa': ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 'Central African Republic', 'Chad', 'Comoros', 'Congo (Brazzaville)', 'Congo (Kinshasa)', 'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'],
+        'US': ['US'],
+        'China': ['China'],
+        'EU': ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Sweden', 'Poland', 'Austria', 'Switzerland', 'Norway', 'Denmark', 'Finland', 'Greece', 'Portugal', 'Ireland', 'Czech Republic', 'Romania', 'Hungary', 'Slovakia', 'Croatia', 'Bulgaria', 'Estonia', 'Slovenia', 'Lithuania', 'Latvia', 'Luxembourg', 'Malta', 'Cyprus'],
+        'Russia': ['Russia'],
+        'Ukraine': ['Ukraine'],
+        'Middle East': ['Saudi Arabia', 'Iran', 'Iraq', 'United Arab Emirates', 'Qatar', 'Kuwait', 'Bahrain', 'Oman', 'Yemen', 'Syria', 'Jordan', 'Lebanon', 'Israel', 'Palestine', 'Egypt', 'Turkey']
+    }
+
+    for region, countries in region_mapping.items():
+        if country in countries:
+            return region
+    return 'Other'
+
+# Function to extract domain names from URLs
+def extract_domain(url):
+    if "://" in url:
+        url = url.split("://")[1]
+    return url.split("/")[0]
