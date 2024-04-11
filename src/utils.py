@@ -46,15 +46,15 @@ def unzip_file(zip_file_path, extract_to_path):
 
 # Function to map countries to regions
 def map_to_region(country):
-      """
-      Maps a country with predefined category.
-
-      Parameters:
-      - country: name of a country
-
-      Returns:
-      - region of the country
-      """
+    """
+    Maps a country with predefined category.
+    
+    Parameters:
+    - country: name of a country
+    
+    Returns:
+    - region of the country
+    """
     region_mapping = {
         'Africa': ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 'Central African Republic', 'Chad', 'Comoros', 'Congo (Brazzaville)', 'Congo (Kinshasa)', 'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'],
         'US': ['US'],
